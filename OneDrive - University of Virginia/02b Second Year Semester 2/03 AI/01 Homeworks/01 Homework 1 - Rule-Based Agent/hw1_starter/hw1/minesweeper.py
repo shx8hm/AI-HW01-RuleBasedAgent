@@ -3,6 +3,7 @@ from utils import ActionType, Cell, Condition, create_random_board
 
 
 class Minesweeper:
+    # NOTE: Constructor
     def __init__(self, size=5, bombs=5, bomb_map=None, gui=False):
         """
         Initializes the Minesweeper game.
@@ -21,8 +22,10 @@ class Minesweeper:
         # For GUI purposes, you do not need to access and modify these variables.
         self.last_action = None  # Track the last revealed cell (x, y)
         self.gui = gui
+
+        # update GUI if you're using one.
         if self.gui:
-            self.gui = MinesweeperUI(self)
+            self.gui = MinesweeperUI(self) #update GUI if you're using one.
 
     def obs(self):
         """
@@ -74,7 +77,7 @@ class Minesweeper:
                 self.revealed_board[x][y] = Cell.REVEALED_BOMB
             else:
                 self.reveal(x, y)
-        elif action.action_type == ActionType.FLAG:
+        elif action.action_type == ActionType.FLAG: #flag/unflag
             self.revealed_board[x][y] = Cell.FLAGGED if self.revealed_board[x][y] != Cell.FLAGGED else Cell.UNREVEALED
         # Track the last action for highlighting
         self.last_action = action
@@ -100,8 +103,25 @@ class Minesweeper:
                 - Condition.IN_PROGRESS: If there are still unrevealed or flagged cells that are not bombs.
                 - Condition.WIN: If all non-bomb cells have been revealed.
         """
-        ### IMPLEMENT THIS ###
-        raise NotImplementedError("Please implement the goal test function.")
+
+        last_action = self.last_action
+
+        # 1. If the last action revealed a bomb, you lose (return Condition.bomb)
+        if (last_action.action_type == ActionType.REVEAL) and (self.revealed_board[last_action.x][last_action.y] == Cell.REVEALED_BOMB):
+            return Condition.BOMB # you lose!
+
+        # 2. Else if there are still unrevealed (or flagged) non-bomb cells remaining
+        for row_i in range(self.size):
+            for col_i in range(self.size):
+                curr_cell = self.revealed_board[row_i][col_i] #self.revealed_board shows user-visible condition
+                if (curr_cell == Cell.FLAGGED or curr_cell == Cell.UNREVEALED) and (self.__board[row_i][col_i] != 'B'):
+                    return Condition.IN_PROGRESS
+
+        # 3. You didn't click on a bomb, and there are no non-bombs left that are flagged or unrevealed.
+        return Condition.WIN
+
+
+
     
     def print_board(self):
         """
